@@ -15,7 +15,7 @@ public:
         adj.resize(n + 1);
     }
 
-    void addEdge(int u, int v) {
+    void addEdge(int u, int v) {            
         adj[u].push_back(v);
     }
 
@@ -78,24 +78,17 @@ public:
 };
 
 int main() {
-    //int n, m;
-    //cin >> n >> m;
+    int n, m;
+    cin >> n >> m;
 
-    Graph graph(5);
+    Graph graph(n);
 
     // Read edges
-    // for (int i = 0; i < m; ++i) {
-    //     int u, v;
-    //     cin >> u >> v;
-    //     graph.addEdge(u, v);
-    // }
-     
-
-    graph.addEdge(1,3);
-    graph.addEdge(1,4);
-    graph.addEdge(2,1);
-    graph.addEdge(3,2);
-    graph.addEdge(4,5);
+    for (int i = 0; i < m; ++i) {
+        int u, v;
+        cin >> u >> v;
+        graph.addEdge(u, v);
+    }
 
     // Find strongly connected components (SCCs) using Kosaraju's algorithm
     vector<vector<int>> sccs = graph.kosaraju();

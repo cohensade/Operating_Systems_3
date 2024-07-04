@@ -3,7 +3,7 @@
 #include <list>
 
 using namespace std;
-
+                        
 class Graph {
 private:
     int n; // number of nodes

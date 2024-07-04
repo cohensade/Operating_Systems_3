@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <sys/select.h>
 
-// Define a type alias for the reactor function
+// Define a type nickname for the reactor function
 typedef std::function<void(int)> reactorFunc;
 
 class Reactor {
@@ -23,7 +23,7 @@ public:
 private:
     // Map to store handler functions for each file descriptor
     std::unordered_map<int, reactorFunc> handlers;
-    fd_set master_set; // Master file descriptor set
+    fd_set master_set; // set of fd 
     int max_fd; // Maximum file descriptor number
     bool running; // Flag to indicate if the reactor is running
 };

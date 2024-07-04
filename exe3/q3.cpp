@@ -18,7 +18,7 @@ public:
     }
 
     void addEdge(int u, int v) {
-        adj[u][v] = 1; // Assuming it's a directed graph
+        adj[u][v] = 1; // directed graph
         cout <<  "added edge between " << u << " and " <<v << endl;
     }
 
@@ -153,7 +153,7 @@ int main() {
         }
 
         // Debug print current state of the graph
-        graph.printGraph(); // Make sure you have a printGraph() method to visualize the graph state
+        graph.printGraph(); 
         cout << endl; // Add extra line for clarity
     }
 

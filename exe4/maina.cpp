@@ -23,7 +23,7 @@ class Graph {
         }
 
         void addEdge(int u, int v) {
-            adj[u][v] = 1; // Assuming it's a directed graph
+            adj[u][v] = 1; //  directed graph
             cout <<"new edge added between  "<< u << " and " << v << endl;
         }
 
@@ -109,72 +109,81 @@ class Graph {
 };
 
 void handleClientCommands(int clientSocket, Graph& graph) {
-char buffer[1024] = {0};
-int valread = read(clientSocket, buffer, 1024);
-if (valread <= 0) {
-if (valread == 0) {
-cout << "Client disconnected." << endl;
-} else {
-perror("recv");
-}
-close(clientSocket);
-return;
-}
+    char buffer[1024] = {0}; //init the buffer
+    int valread = read(clientSocket, buffer, 1024); // read data from client socket into buffer
+    if (valread <= 0) {
+        if (valread == 0) {
+            cout << "Client disconnected." << endl;
+        } 
+        else {
+            perror("recv");
+        }
+    close(clientSocket);
+    return;
+    }
 
-stringstream ss(buffer);
-string command;
-ss >> command;
+    stringstream ss(buffer);//stringstream to parse the command from the buffer
+    string command; //define the command that given by the client
+    ss >> command;
 
-if (command == "Newgraph") {
-int n, m;
-ss >> n >> m;
-graph = Graph(n); // Reinitialize graph
+    if (command == "Newgraph") {
+        int n, m;
+        ss >> n >> m;
+        graph = Graph(n); // Reinitialize graph
 
-for (int i = 0; i < m; ++i) {
-memset(buffer, 0, sizeof(buffer));
-valread = read(clientSocket, buffer, 1024);
-if (valread == 0) {
-cout << "Client disconnected while sending graph edges." << endl;
-close(clientSocket);
-return;
-}
-stringstream edgeStream(buffer);
-int u, v;
-edgeStream >> u >> v;
-graph.addEdge(u, v);
-}
-} else if (command == "Kosaraju") {
-vector<vector<int>> sccs = graph.kosaraju();
+        for (int i = 0; i < m; ++i) {
+            memset(buffer, 0, sizeof(buffer));// clear the buffer
+            valread = read(clientSocket, buffer, 1024);
+            if (valread == 0) {
+                cout << "Client disconnected while sending graph edges." << endl;
+                close(clientSocket);
+                return;
+            }
+            stringstream edgeStream(buffer);//take edges from the client
+            int u, v;
+            edgeStream >> u >> v;
+            graph.addEdge(u, v);
+        }
+    } 
+    else if (command == "Kosaraju") {
+        // Command to execute Kosaraju's algorithm to find SCCs
+        vector<vector<int>> sccs = graph.kosaraju();
+        stringstream response;
+        response << "Kosaraju command executed.\nThe SCC's are:\n";
+            for (const auto& scc : sccs) {
+                for (int node : scc) {
+                    response << node << " ";
+                }
+                response << endl; // Print each SCC on a new line
+            }
+        //send the SCCs to the client    
+        send(clientSocket, response.str().c_str(), response.str().length(), 0);
+    } 
+    else if (command == "Newedge") {
+        // Command to add a new edge to the graph
+        int i, j;
+        ss >> i >> j;
+        cout << "Newedge command: adding edge " << i << " -> " << j << endl;
+        graph.addEdge(i, j);
 
-stringstream response;
-response << "Kosaraju command executed.\nThe SCC's are:\n";
-for (const auto& scc : sccs) {
-for (int node : scc) {
-response << node << " ";
-}
-response << endl; // Print each SCC on a new line
-}
-send(clientSocket, response.str().c_str(), response.str().length(), 0);
-} else if (command == "Newedge") {
-int i, j;
-ss >> i >> j;
-cout << "Newedge command: adding edge " << i << " -> " << j << endl;
-graph.addEdge(i, j);
-send(clientSocket, "Newedge command executed successfully.\n", strlen("Newedge command executed successfully.\n"), 0);
-} else if (command == "Removeedge") {
-int i, j;
-ss >> i >> j;
-cout << "Removeedge command: Removing edge " << i << " -> " << j << endl;
-graph.removeEdge(i, j);
-send(clientSocket, "Removeedge command executed successfully.\n", strlen("Removeedge command executed successfully.\n"), 0);
-} else {
-// Handle invalid command or end of input
-send(clientSocket, "Invalid command.\n", strlen("Invalid command.\n"), 0);
-}
+        send(clientSocket, "Newedge command executed successfully.\n", strlen("Newedge command executed successfully.\n"), 0);
+    } 
+    else if (command == "Removeedge") {
+        // Command to remove an edge from the graph
+        int i, j;
+        ss >> i >> j;
+        cout << "Removeedge command: Removing edge " << i << " -> " << j << endl;
+        graph.removeEdge(i, j);
+        send(clientSocket, "Removeedge command executed successfully.\n", strlen("Removeedge command executed successfully.\n"), 0);
+    } 
+    else {
+        // Handle invalid command or end of input
+        send(clientSocket, "Invalid command.\n", strlen("Invalid command.\n"), 0);
+        }
 
-// Debug print current state of the graph
-graph.printGraph(); // Make sure you have a printGraph() method to visualize the graph state
-cout << endl; // Add extra line for clarity
+        //print current state of the graph
+    graph.printGraph(); 
+    cout << endl; //Yeridat sora
 }
 
 int main() {
@@ -211,27 +220,29 @@ int main() {
     }
 
     // Initialize pollfd array
-    struct pollfd fds[200];
-    int nfds = 1;
+    struct pollfd fds[200]; //Array to hold file descriptors for poll
+    int nfds = 1; //the number of file descriptors
     memset(fds, 0, sizeof(fds));
 
     // Set up initial listening socket
-    fds[0].fd = serverSocket;
-    fds[0].events = POLLIN;
+    fds[0].fd = serverSocket; // Listening socket
+    fds[0].events = POLLIN; 
 
 
     cout << "server opened and now listening for clients to connect" << endl;
 
 
     while (true) {
+        // Call poll to wait for events on the file descriptors
         int poll_count = poll(fds, nfds, -1);
         if (poll_count < 0) {
             perror("poll error");
             exit(EXIT_FAILURE);
         }
-
+        //itereate all over the fd
         for (int i = 0; i < nfds; i++) {
             if (fds[i].revents & POLLIN) {
+                 // Check if there's an event on the listening socket
                 if (fds[i].fd == serverSocket) {
                     // Incoming connection
                     int clientSocket;
@@ -242,7 +253,7 @@ int main() {
 
                     cout << "New connection, socket fd is " << clientSocket << ", ip is : " << inet_ntoa(address.sin_addr) << ", port : " << ntohs(address.sin_port) << endl;
 
-                    // Add new socket to array of fds
+                    // add new socket to array of fds
                     fds[nfds].fd = clientSocket;
                     fds[nfds].events = POLLIN;
                     nfds++;

@@ -7,26 +7,26 @@ using namespace std;
 class Graph {
 private:
     int n; // number of nodes
-    vector<list<int>> adj; // adjacency list
+    vector<vector<int>> adjMatrix; // adjacency matrix
 
 public:
     Graph(int n) {
         this->n = n;
-        adj.resize(n + 1);
+        adjMatrix.resize(n + 1, vector<int>(n + 1, 0));
     }
 
     void addEdge(int u, int v) {
-        adj[u].push_back(v);
+        adjMatrix[u][v] = 1;
     }
 
-    void dfs(int v, vector<bool>& visited, vector<int>& finishTimes) {
+    void dfs(int v, vector<bool>& visited, list<int>& finishOrder) {
         visited[v] = true;
-        for (int u : adj[v]) {
-            if (!visited[u]) {
-                dfs(u, visited, finishTimes);
+        for (int u = 1; u <= n; ++u) {
+            if (adjMatrix[v][u] && !visited[u]) {
+                dfs(u, visited, finishOrder);
             }
         }
-        finishTimes.push_back(v);
+        finishOrder.push_back(v);
     }
 
     void dfsTranspose(int v, vector<bool>& visited, vector<int>& component, const vector<vector<int>>& adjMatrixT) {
@@ -41,20 +41,12 @@ public:
 
     vector<vector<int>> kosaraju() {
         vector<bool> visited(n + 1, false);
-        vector<int> finishTimes;
+        list<int> finishOrder; // Use list to maintain finishing order
 
-        // Step 1: Perform DFS and record finishing times
+        // Step 1: Perform DFS and fill list with finishing order
         for (int i = 1; i <= n; ++i) {
             if (!visited[i]) {
-                dfs(i, visited, finishTimes);
-            }
-        }
-
-        // Initialize adjacency matrix from adjacency list
-        vector<vector<int>> adjMatrix(n + 1, vector<int>(n + 1, 0));
-        for (int u = 1; u <= n; ++u) {
-            for (int v : adj[u]) {
-                adjMatrix[u][v] = 1;
+                dfs(i, visited, finishOrder);
             }
         }
 
@@ -70,9 +62,9 @@ public:
         visited.assign(n + 1, false);
         vector<vector<int>> sccs;
 
-        // Step 3: Process nodes in order defined by finishing times
-        for (int i = finishTimes.size() - 1; i >= 0; --i) {
-            int v = finishTimes[i];
+        // Step 3: Process nodes in order defined by finishOrder
+        for (auto it = finishOrder.rbegin(); it != finishOrder.rend(); ++it) {
+            int v = *it;
             if (!visited[v]) {
                 vector<int> component;
                 dfsTranspose(v, visited, component, adjMatrixT);
@@ -106,11 +98,10 @@ int main() {
     // Output SCCs
     for (const auto& scc : sccs) {
         for (int node : scc) {
-            cout << node  << " ";
+            cout << node << " ";
         }
         cout << "\n";
     }
 
     return 0;
 }
-   

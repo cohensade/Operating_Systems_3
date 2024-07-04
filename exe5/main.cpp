@@ -12,7 +12,7 @@ void handleClient(int clientSocket) {
     if (bytesRead > 0) {
         buffer[bytesRead] = '\0';
         std::cout << "Received: " << buffer << std::endl;
-        // Echo back to client
+        // write back to client
         write(clientSocket, buffer, bytesRead);
     } else {
         // Close the connection if no data is read
@@ -53,7 +53,7 @@ int main() {
     // Add server socket to reactor to accept new connections
     reactor.addFdToReactor(serverSocket, [&](int fd) {
         int clientSocket;
-        // Accept a new connection
+        // Accept a new connection          
         if ((clientSocket = accept(fd, (struct sockaddr*)&address, (socklen_t*)&addrlen)) < 0) {
             perror("accept");
             exit(EXIT_FAILURE);
